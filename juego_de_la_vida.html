@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego de la Vida</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        label {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        input[type="number"] {
+            width: 50px;
+            margin-bottom: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .redBtn{
+            background-color: red;
+        }
+        .greenBtn{
+            background-color: green;
+        }
+
+        table {
+            border-collapse: collapse;
+            border: 2px solid black;
+            margin-top: 20px;
+        }
+
+        td {
+            width: 20px;
+            height: 20px;
+            border: 1px solid #ccc;
+            text-align: center;
+        }
+         .alga {
+            background-color: #98fb98; /* Verde claro */
+        }
+
+        .pez {
+            background-color: #7171f9; /* Azul oscuro */
+            color: white;
+        }
+
+        .tiburon {
+            background-color: #dc143c; /* Rojo oscuro */
+            color: white;
+        }
+        .mar {
+            background-color: #f0f8ff;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+
+    <label for="numColumnas">Número de Columnas:</label>
+    <input type="number" id="numColumnas" value="10"><br>
+
+    <label for="numFilas">Número de Filas:</label>
+    <input type="number" id="numFilas" value="10"><br>
+
+    <label for="algas">Algas iniciales:</label>
+    <input type="number" id="algas" value="10"><br>
+
+    <label for="peces">Peces iniciales:</label>
+    <input type="number" id="peces" value="10"><br>
+
+    <label for="tiburones">Tiburones iniciales:</label>
+    <input type="number" id="tiburones" value="5"><br>
+
+    <label for="turno">Turno inicial:</label>
+    <input type="number" id="turno" value="0"><br>
+
+    <label for="retardo">Retardo entre turnos (ms):</label>
+    <input type="number" id="retardo" value="2000"><br>
+
+    <button onclick="iniciarJuego()">Iniciar Juego</button><br><br>
+    <button id="pausarBtn" disabled>Star/Stop</button><br>
+
+    <table id="tablaJuego"></table>
+
+ <script>
+    // Variable global para pausar o reanudar el juego
+    var starStop = 0;
+    var pausarBtn = document.getElementById("pausarBtn");
+    // Agregar un event listener al botón de pausa
+    pausarBtn.addEventListener("click", function() {
+        // Cambiar el valor de starStop
+        if (starStop === 0) {
+            starStop = 1;
+            this.className="";
+            this.classList.add("redBtn");
+        } else {
+            starStop = 0;
+            this.className="";
+            this.classList.add("greenBtn");
+        }
+        console.log("starStop ahora es:", starStop);
+    });
+
+    function agregarAnimales(tabla, numColumnas, numFilas, numAnimal, nombreCSS, letraTablero, vidas) {
+        while (numAnimal > 0) {
+            // Generar dos números aleatorios dentro de los límites de numColumnas y numFilas
+            var randomColumna = Math.floor(Math.random() * numColumnas);
+            var randomFila = Math.floor(Math.random() * numFilas);
+
+            // Obtener la celda en la posición aleatoria
+            var celda = tabla.rows[randomFila].cells[randomColumna];
+
+            // Verificar si la celda está libre
+            if (celda.innerHTML === '') {
+                celda.className="";
+                // Agregar el animal a la celda
+                celda.innerHTML = letraTablero;
+                // Agregar la clase CSS al animal
+                celda.classList.add(nombreCSS);
+                // Agregar vidas iniciales;
+                celda.dataset.vidas = vidas;
+                celda.dataset.tipo = nombreCSS;
+                // Agregamos un controlador de juego
+                celda.dataset.turnoJugado = 0;
+                // Reducir en uno el contador de animales
+                numAnimal--;
+            }
+        }
+    }
+
+    // Función para inicializar el juego
+    function iniciarJuego() {
+        var btnStarStop = document.getElementById("pausarBtn");
+        starStop = 1;
+        btnStarStop.className="";
+        btnStarStop.classList.add("redBtn");
+        btnStarStop.removeAttribute("disabled");
+        // Configurar el número de columnas y filas // Obtener valores de entrada del usuario
+        var numColumnas = parseInt(document.getElementById("numColumnas").value);
+        var numFilas = parseInt(document.getElementById("numFilas").value);
+        var algas = parseInt(document.getElementById("algas").value);
+        var AlgasVida = 5;
+        var peces = parseInt(document.getElementById("peces").value);
+        var PecesVida = 5;
+        var tiburones = parseInt(document.getElementById("tiburones").value);
+        var TiburonesVida = 7;
+
+        // Obtener el elemento de la tabla del juego
+        var tabla = document.getElementById("tablaJuego");
+        tabla.innerHTML = '';
+
+        // Configurar el borde exterior negro de 2px
+        tabla.style.border = "2px solid black";
+
+        for (var i = 0; i < numFilas; i++) {
+            var fila = tabla.insertRow(i);
+            for (var j = 0; j < numColumnas; j++) {
+                var celda = fila.insertCell(j);
+                celda.innerHTML = ""; // celda vacia
+                celda.classList.add("mar");
+                celda.dataset.tipo = "mar";
+            }
+        }
+        agregarAnimales(tabla, numColumnas, numFilas, algas, "alga", "A",AlgasVida);
+        agregarAnimales(tabla, numColumnas, numFilas, peces, "pez", "P",PecesVida);
+        agregarAnimales(tabla, numColumnas, numFilas, tiburones, "tiburon", "T",TiburonesVida);
+
+        // Establecer el turno inicial
+        var turno = parseInt(document.getElementById("turno").value);
+        
+        // Configurar el retardo entre turnos
+        var retardo = parseInt(document.getElementById("retardo").value);
+        pasa_turno();
+        setTimeout(function() {
+            // Realizar acciones del juego
+        }, retardo);
+    }
+
+    function obtenerCeldasAdyacentesDisponibles(tabla,celdaOrigen,tipo,vidas){
+        // Obtener las coordenadas de la celda de origen
+        var filaOrigen = celdaOrigen.parentNode.rowIndex;
+        var columnaOrigen = celdaOrigen.cellIndex;
+        var celdasDisponibles = [];
+        // Coordenadas de las celdas adyacentes
+        var coordenadasAdyacentes = [
+            { fila: filaOrigen - 1, columna: columnaOrigen }, // Arriba
+            { fila: filaOrigen + 1, columna: columnaOrigen }, // Abajo
+            { fila: filaOrigen, columna: columnaOrigen - 1 }, // Izquierda
+            { fila: filaOrigen, columna: columnaOrigen + 1 }  // Derecha
+        ];
+
+        // Inicializar la celda adyacente más cercana y la distancia mínima
+        var celdaMasCercana = null;
+        var encontradaCeldaDisponible = false;
+        // Iterar sobre las coordenadas adyacentes
+        for (var i = 0; i < coordenadasAdyacentes.length && !encontradaCeldaDisponible; i++) {
+            var filaAdyacente = coordenadasAdyacentes[i].fila;
+            var columnaAdyacente = coordenadasAdyacentes[i].columna;
+
+            // Verificar si la celda está dentro de los límites de la tabla
+            if (filaAdyacente >= 0 && filaAdyacente < tabla.rows.length &&
+                columnaAdyacente >= 0 && columnaAdyacente < tabla.rows[filaAdyacente].cells.length) {
+                // Obtener la celda adyacente
+                var celdaAdyacente = tabla.rows[filaAdyacente].cells[columnaAdyacente];
+                // Verificar si la celda adyacente es del tipo correcto y no ha jugado su turno
+                if (celdaAdyacente.dataset.tipo === tipo && celdaAdyacente.dataset.turnoJugado === "0") {
+                    // Agregar la celda adyacente a las celdas disponibles
+                    return celdaAdyacente;
+                }else if(celdaAdyacente.dataset.tipo === "mar"){ // si la celda no es mar no interesa.
+                    celdaAdyacente = obtenerCeldasAdyacentesDisponibles(celdaAdyacente,tipo,vidas -1);
+                }
+            }
+        }
+
+        return celdaAdyacente;
+    }
+
+    function buscarVidaAdyacenteMasCercana(tipoAnimal, vidasRestantes, celdaOrigen,miTabla) {
+         console.log("Animal: "+tipoAnimal+" - Vidas: "+vidasRestantes+" - CeldaOrigen: "+celdaOrigen);
+
+        // Inicializar la celda adyacente más cercana y la distancia mínima
+        var celdaMasCercana = null;
+        celdaMasCercana = obtenerCeldasAdyacentesDisponibles(miTabla,celdaOrigen,tipoAnimal,vidasRestantes)
+
+
+        
+
+        // Devolver la celda adyacente más cercana
+        if (celdaMasCercana) {
+        console.log("Celda más cercana - Fila: " + celdaMasCercana.parentNode.rowIndex + ", Columna: " + celdaMasCercana.cellIndex);
+        } else {
+            console.log("No se encontraron celdas adyacentes válidas.");
+        }
+        return celdaMasCercana;
+    }
+
+    function pasa_turno() {
+        // Obtener la referencia a la tabla por su ID
+        var tabla = document.getElementById("tablaJuego");
+        // Obtener el número de filas
+        var numFilas = tabla.rows.length;
+        // Obtener el número de columnas (asumiendo que todas las filas tienen la misma cantidad de celdas)
+        var numColumnas = tabla.rows[0].cells.length;
+        for (var i = 0; i < numFilas; i++) {
+            //var fila = tabla.rows[i];
+            for (var j = 0; j < numColumnas; j++) {
+                var celda = tabla.rows[i].cells[j];
+                var tipo = celda.dataset.tipo;
+                var vidas = celda.dataset.vidas;
+                // Aplicar las acciones según el tipo de animal
+                console.log("Animal: "+celda.dataset.tipo);
+                switch (celda.dataset.tipo){
+                    case "alga":
+                        pareja = buscarVidaAdyacenteMasCercana(tipo, vidas, celda,tabla)
+                        if(pareja != null){
+
+                        }else{ // está condenada a morir y por lo tanto, se borra por mar.
+                            celda.dataset.tipo = "mar";
+                            celda.dataset.vidas = "";
+                            celda.innerHTML = ""; // celda vacia
+                            celda.className=""; // vaciamos clases
+                            celda.classList.add("mar");}
+                        // (implementar la lógica aquí)
+                        break;
+                    case "pez":
+                        // Comer algas si están presentes
+                        // (implementar la lógica aquí)
+                        
+                        // Intentar reproducirse
+                        // (implementar la lógica aquí)
+                        break;
+                    case "tiburon":
+                        // Comer peces si están presentes
+                        // (implementar la lógica aquí)
+                        
+                        // Intentar reproducirse
+                        // (implementar la lógica aquí)
+                        break;
+                    default:
+                        // No hacer nada si la celda no contiene un animal
+                        break;
+                }
+                celda.dataset.turnoJugado = 1;
+                    
+            }
+        }
+    }
+
+</script>
+</body>
+</html>

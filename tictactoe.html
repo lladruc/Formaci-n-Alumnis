@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>TIC-TAC-TOE</title>
+	<link rel="preconnect" href="https://fonts.gstatic.com">
+	<link href="https://fonts.googleapis.com/css2?family=Boogaloo&display=swap" rel="stylesheet">
+	<style type="text/css">
+		table{
+			position: relative;
+			margin: 2em auto 0 auto;
+			width: 30em;
+		    font-family: 'Boogaloo', cursive; /* Aplicamos la fuente Boogaloo a la tabla */
+		}
+		#letrero{
+			text-align: center;
+			border: 1px solid black;
+			height: 4em;
+		    font-family: 'Boogaloo', cursive; /* Aplicamos la fuente Boogaloo al letrero */
+		}
+		#tablero tr{
+			height: 7em;
+
+		}
+		#tablero td{
+			text-align: center;
+		    border: 1px solid black;
+		    width: 100px; /* Ancho fijo para las casillas */
+		    height: 100px; /* Alto fijo para las casillas */
+		    font-size: 2em; /* Tamaño de la letra */
+		    vertical-align: middle; /* Alineación vertical */
+		    line-height: 100px; /* Alineación vertical */
+            font-family: 'Boogaloo', cursive; /* Aplicamos la fuente Boogaloo a las celdas */
+		}
+		button{
+			position:fixed;
+			top: 35em;
+			left: 48%;
+			padding: 1em 2em;
+		}
+	</style>
+</head>
+<body>
+	<table>
+		<thead><tr><td colspan="3" id="letrero">.</td></tr></thead>
+		<tbody id="tablero">
+
+			
+		</tbody>
+	</table>
+	<div><button id="reset">Reiniciar</button></div>
+	<script type="text/javascript">
+		// DEFINIMOS VARIABLES NECESARIAS
+		let matriz = [[0,0,0],[0,0,0],[0,0,0]];
+		let jugadores = ['X','O'];
+		var turnos_jugados = 0;
+		var winer = false;
+		var turno = true; // turno false para máquina, true para jugador.
+
+
+		//Definimos las funciones
+
+		function crear_tablero(matriz){
+			var table = document.getElementById("tablero");
+			for(i=0; i < 3; i++){
+				var row = table.insertRow(i);
+				for(j=0; j< 3; j++){
+					var cell = row.insertCell(j);
+					var cellid = 'TR'+i+'TD'+j;
+					cell.setAttribute('id',cellid);
+					cell.setAttribute('onclick','quiero_celda('+i+','+j+')');
+					cell.innerHTML ="&nbsp;";
+					//cell.innerHTML= "X="+i+",Y="+j;
+				}
+			}
+			
+		}
+
+		function celda_ocupada(x,y){ //devolverá TRUE si está ocupada o FALSE si está vacía.
+			return matriz[x][y] != 0;
+		}
+
+		function pintar_celda(x,y,jugador){
+			console.log("Estamos en el jugador: "+jugador+" -> "+jugadores[Number(jugador)]+"\n");
+			var table = document.getElementById("tablero");
+			var row = table.getElementsByTagName("tr")[x];
+			var td = row.getElementsByTagName("td")[y];
+			var ficha = jugadores[Number(jugador)];
+			matriz[x][y] = jugadores[Number(jugador)]; 
+			td.innerHTML = ficha;
+			hay_ganador(jugador);
+		}
+
+		function Al(){
+			if(winer){ return 0;}
+			var x,y;
+			let items;
+			intentos = 30;
+			do{
+				x = Math.floor(Math.random() * 3);
+				y = Math.floor(Math.random() * 3);
+				console.log("TURNO: "+turnos_jugados+" .AL- X: "+x+",Y: "+y+"\n");
+				intentos--;
+			}while(matriz[x][y] != 0 && intentos > 0);
+			pintar_celda(x,y,turno);
+			var jugada = [];
+				jugada[0] = x+1;
+				jugada[1] = y+1;
+			return jugada;
+			
+		}
+
+		function hay_ganador(jugador){
+			if( (matriz[0][0] == jugadores[Number(jugador)] && matriz[0][1] == jugadores[Number(jugador)] && matriz[0][2] == jugadores[Number(jugador)]) || 
+				(matriz[1][0] == jugadores[Number(jugador)] && matriz[1][1] == jugadores[Number(jugador)] && matriz[1][2] == jugadores[Number(jugador)]) ||
+				(matriz[2][0] == jugadores[Number(jugador)] && matriz[2][1] == jugadores[Number(jugador)] && matriz[2][2] == jugadores[Number(jugador)]) ||
+
+				(matriz[0][0] == jugadores[Number(jugador)] && matriz[1][0] == jugadores[Number(jugador)] && matriz[2][0] == jugadores[Number(jugador)]) ||
+				(matriz[0][1] == jugadores[Number(jugador)] && matriz[1][1] == jugadores[Number(jugador)] && matriz[2][1] == jugadores[Number(jugador)]) ||
+				(matriz[0][2] == jugadores[Number(jugador)] && matriz[1][2] == jugadores[Number(jugador)] && matriz[2][2] == jugadores[Number(jugador)]) ||
+
+				(matriz[0][0] == jugadores[Number(jugador)] && matriz[1][1] == jugadores[Number(jugador)] && matriz[2][2] == jugadores[Number(jugador)]) ||
+				(matriz[2][0] == jugadores[Number(jugador)] && matriz[1][1] == jugadores[Number(jugador)] && matriz[0][2] == jugadores[Number(jugador)]) 
+				){
+				winer = true;
+				console.log("¡¡¡ HAY GANADOR !!! \n Es: "+jugadores[Number(jugador)]+"\n");
+				var letrero = document.getElementById("letrero");
+				letrero.innerHTML = "Juego finalizado. Ganador: "+jugadores[Number(jugador)];
+				alert("Ya has ganado, reinicia el juego");
+
+			}else{ // no hay ganador
+				console.log("No hay ganador aún.")
+			}
+		}
+
+		function quiero_celda(x,y){
+			console.log("Quieres la celda ['"+x+"']['"+y+"']");
+			var letrero = document.getElementById("letrero");
+			if(winer){
+				return false;
+			}
+			if(turno){ //por fin me toca !!
+				if(celda_ocupada(x,y)){
+					console.log("Celda ocupada! ");
+					alert("La celda que intentas usar está ocupada");
+				}else{
+					console.log("Celda libre");
+					Texto = "Humano juega: X:"+x+",Y:"+y;
+					pintar_celda(x,y,turno);
+					// le toca a la I.A:
+
+					//hay_ganador(turno);
+					turno = !turno;
+					jugada = Al();
+					Texto= "I.A. juega: O:"+jugada[0]+",Y:"+jugada[1];
+					letrero.innerHTML = Texto;
+					//hay_ganador(turno);
+					turno = !turno;
+				}
+			}
+			
+		}
+
+		function reiniciar_tablero() {
+			matriz = [[0,0,0],[0,0,0],[0,0,0]];
+			turnos_jugados = 0;
+			winer = false;
+			turno = true; 
+            // Reinicia el contenido de las celdas del tablero
+            var cells = document.querySelectorAll("#tablero td");
+            cells.forEach(cell => {
+                cell.innerHTML = "&nbsp;";
+            });
+        }
+
+
+
+
+		// Arrancamos cuando la página esté cargada.
+		window.onload = (event) => {
+  			console.log("page is fully loaded");
+  			//Llamamos a las funciones de creación
+  			crear_tablero(matriz);
+  			var jugada = "";
+  			contador = 10;
+			document.getElementById("reset").addEventListener("click", reiniciar_tablero);
+		};
+
+	</script>
+</body>
+</html>
