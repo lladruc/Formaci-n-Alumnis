@@ -54,7 +54,7 @@
 			
 		</tbody>
 	</table>
-	<div><button id="reset">Reiniciar</button><button id="Machine vs Machine">Testing</button></div><br />
+	<div><button id="reset">Reiniciar</button><button id="MvsM">Testing</button></div><br />
 	<div></div>
 	<script type="text/javascript">
 		// DEFINIMOS VARIABLES NECESARIAS
@@ -83,41 +83,6 @@
 			
 		}
 
-		function celda_ocupada(x,y){ //devolverá TRUE si está ocupada o FALSE si está vacía.
-			return matriz[x][y] != 0;
-		}
-
-		function pintar_celda(x,y,jugador){
-			console.log("Estamos en el jugador: "+jugador+" -> "+jugadores[Number(jugador)]+"\n");
-			console.log("Se intenta pintar: ["+x+"]["+y+"];")
-			var table = document.getElementById("tablero");
-			var row = table.getElementsByTagName("tr")[x];
-			var td = row.getElementsByTagName("td")[y];
-			var ficha = jugadores[Number(jugador)];
-			matriz[x][y] = jugadores[Number(jugador)]; 
-			td.innerHTML = ficha;
-			hay_ganador(jugador);
-		}
-
-		function Al(){
-			if(winer){ return 0;}
-			var x,y;
-			let items;
-			intentos = 30;
-			do{
-				x = Math.floor(Math.random() * 3);
-				y = Math.floor(Math.random() * 3);
-				console.log("TURNO: "+turnos_jugados+" .AL- X: "+x+",Y: "+y+"\n");
-				intentos--;
-			}while(matriz[x][y] != 0 && intentos > 0);
-			pintar_celda(x,y,turno);
-			var jugada = [];
-				jugada[0] = x+1;
-				jugada[1] = y+1;
-			return jugada;
-			
-		}
-
 		function hay_ganador(jugador){
 			if( (matriz[0][0] == jugadores[Number(jugador)] && matriz[0][1] == jugadores[Number(jugador)] && matriz[0][2] == jugadores[Number(jugador)]) || 
 				(matriz[1][0] == jugadores[Number(jugador)] && matriz[1][1] == jugadores[Number(jugador)] && matriz[1][2] == jugadores[Number(jugador)]) ||
@@ -140,6 +105,43 @@
 				console.log("No hay ganador aún.")
 			}
 		}
+
+		function celda_ocupada(x,y){ //devolverá TRUE si está ocupada o FALSE si está vacía.
+			return matriz[x][y] != 0;
+		}
+
+		function pintar_celda(x,y,jugador){
+			console.log("Estamos en el jugador: "+jugador+" -> "+jugadores[Number(jugador)]+"\n");
+			console.log("Se intenta pintar: ["+x+"]["+y+"];")
+			var table = document.getElementById("tablero");
+			var row = table.getElementsByTagName("tr")[x];
+			var td = row.getElementsByTagName("td")[y];
+			var ficha = jugadores[Number(jugador)];
+			matriz[x][y] = jugadores[Number(jugador)]; 
+			td.innerHTML = ficha;
+			//hay_ganador(jugador);
+		}
+
+		function Al(){
+			if(winer){ return 0;}
+			var x,y;
+			let items;
+			intentos = 30;
+			do{
+				x = Math.floor(Math.random() * 3);
+				y = Math.floor(Math.random() * 3);
+				console.log("TURNO: "+turnos_jugados+" .AL- X: "+x+",Y: "+y+"\n");
+				intentos--;
+			}while(matriz[x][y] != 0 && intentos > 0);
+			pintar_celda(x,y,turno);
+			var jugada = [];
+				jugada[0] = x+1;
+				jugada[1] = y+1;
+			return jugada;
+			
+		}
+
+		
 
 		function quiero_celda(x,y){
 			console.log("Quieres la celda ['"+x+"']['"+y+"']");
@@ -258,6 +260,7 @@
 		      }
 		      return null;  // Devolver null si no se encuentra ninguna posición vacía
 		  }
+		  console.log("Se juega: ["+x+"]["+y+"]")
 		  return jugada;
 		}
 
@@ -277,31 +280,54 @@
 		}
 
 		function turnos_maquina(turno,m){
+			jugador = 'O';
+			turno_j = false;
+			console.log(turno%2+" <- es;");
+			if(turno%2){ jugador = 'X'; turno_j = true;}
 			jugada = null;
 			switch(turno){
 				case 1:  // o pintamos el centro o pintamos el lat. izquierdo superior.
-					if(m[1][1] == ''){ pintar_celda(1,1,false);}else{ pintar_celda(0,0,false)}
+				case 2:
+					if(m[1][1] == ''){ pintar_celda(1,1,turno_j);}else{ pintar_celda(0,0,turno_j);}
 				break;
 				case 3: //aqui bloqueamos o intentamos ganar. Revisar 314.
-					jugada = intentar_ganar_o_bloquear(m,'X');
+				case 4:
+					jugada = intentar_ganar_o_bloquear(m,jugador);
 				break;
 
 				default:
-					jugada = intentar_ganar_o_bloquear(m,'X');
+					jugada = intentar_ganar_o_bloquear(m,jugador);
 				break;
 			}
 			// le toca a la I.A:
-					//hay_ganador(turno);
-					if(jugada != null && jugada[0] != -1){
-						pintar_celda(jugada[0],jugada[1],false);
-						Texto= "I.A. juega: O:"+jugada[0]+",Y:"+jugada[1];
-						letrero.innerHTML = Texto;
-						//hay_ganador(turno);
-					}else{
-						console.log("empate");
-					}
+			//hay_ganador(turno);
+			if(jugada != null && jugada[0] != -1){
+				pintar_celda(jugada[0],jugada[1],false);
+				Texto= "I.A. juega: O:"+jugada[0]+",Y:"+jugada[1];
+				letrero.innerHTML = Texto;
+				//hay_ganador(turno);
+			}else{
+				console.log("empate o error.");
+			}
 
 		}
+		function sleep(ms) {
+    	  return new Promise(resolve => setTimeout(resolve, ms));
+   		}
+
+		async function automatico(){
+			var m = matriz;
+			var recuento = "";
+			hay_ganador = false;
+			for(i = 0; i < 10;i++){ // haremos 10 pruebas.
+				reiniciar_tablero();
+				for(j = 0; j< 9 && !hay_ganador; j++){ // aquí haremos las jugadas.
+					await sleep(1000);
+					turnos_maquina(j,m);
+				}
+			}
+		}
+
 
 
 
@@ -313,6 +339,7 @@
   			var jugada = "";
   			contador = 10;
 			document.getElementById("reset").addEventListener("click", reiniciar_tablero);
+			//document.getElementById("MvsM").addEventListener("click", automatico);
 		};
 
 	</script>
